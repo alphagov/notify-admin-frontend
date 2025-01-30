@@ -53,40 +53,66 @@ class UpdateStatus {
     let id = 'update-status';
 
     this.$module = $module;
-    this.$textbox = $('#' + this.$module.data('target'));
+    this.$textbox = document.querySelector(`#${this.$module.dataset.target}`);
 
-    this.$module
-      .attr('id', id);
+    this.$module.setAttribute('id', id);
 
-    this.$textbox
-      .attr(
-        'aria-describedby',
-        (
-          this.$textbox.attr('aria-describedby') || ''
-        ) + (
-          this.$textbox.attr('aria-describedby') ? ' ' : ''
-        ) + id
-      )
-      .on('input', throttle(this.update, 150))
-      .trigger('input');
+    this.$textbox.setAttribute( 'aria-describedby',
+      (
+        this.$textbox.getAttribute('aria-describedby') || ''
+      ) + (
+        this.$textbox.getAttribute('aria-describedby') ? ' ' : ''
+      ) + id
+    );
+    this.$textbox.addEventListener("input", () => {
+      // console.log(el)
+      // this.$textbox.dispatchEvent(new Event("input"))
+      throttle(this.update(), 150)
+      // el.dispatchEvent(new Event('input', { bubbles: true }));
+    });
         
   }
 
-  update () {
+  async update () {
+    console.log(new URLSearchParams(new FormData(this.getParent(this.$textbox, 'form'))).toString())
+    await fetch(this.$module.dataset.updatesUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: new URLSearchParams(new FormData(this.getParent(this.$textbox, 'form'))).toString()
+    })
+    .then((response) => {
+      console.log('response', response)
+      this.getRenderer(this.$module, response)
+    });
 
-    $.ajax(
-      this.$module.data('updates-url'),
-      {
-        'method': 'post',
-        'data': this.$textbox.parents('form').serialize()
-      }
-    ).done(
-      getRenderer(this.$module)
-    ).fail(
-      () => {}
-    );
+    // $.ajax(
+    //   this.$module.dataset.updatesUrl,
+    //   {
+    //     'method': 'post',
+    //     'data': new URLSearchParams(new FormData(this.$textbox.parentNode('form'))).toString();
+    //   }
+    // ).done(
+    //   this.getRenderer(this.$module)
+    // ).fail(
+    //   () => {}
+    // );
 
   };
+
+  getRenderer ($module, response) {
+    console.log('yes')
+    $module.innerHTML = response.html
+  }
+
+  getParent(el, selector) {
+    const parents= [];
+    while ((el = el.parentNode) && el !== document) {
+      if (!selector || el.matches(selector)) parents.push(el);
+    }
+    return parents[0];
+  }
 }
 
 export default UpdateStatus;
