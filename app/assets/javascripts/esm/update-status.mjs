@@ -74,7 +74,9 @@ class UpdateStatus {
   }
 
   async update () {
-    console.log(new URLSearchParams(new FormData(this.getParent(this.$textbox, 'form'))).toString())
+    console.log('tostring', new URLSearchParams(new FormData(this.getParent(this.$textbox, 'form'))).toString())
+    console.log('stringify', JSON.stringify(new URLSearchParams(new FormData(this.getParent(this.$textbox, 'form'))).toString()))
+    console.log('random', new URLSearchParams(new FormData(this.getParent(this.$textbox, 'form'))).toString())
     await fetch(this.$module.dataset.updatesUrl, {
       method: "POST",
       headers: {
@@ -82,9 +84,13 @@ class UpdateStatus {
       },
       body: new URLSearchParams(new FormData(this.getParent(this.$textbox, 'form'))).toString()
     })
-    .then((response) => {
-      console.log('response', response)
-      this.getRenderer(this.$module, response)
+    .then(res => res.json())
+    .then((data) => {
+      console.log('response', data)
+      this.getRenderer(this.$module, data)
+    })
+    .catch(() => {
+      () => {}
     });
 
     // $.ajax(
@@ -102,7 +108,6 @@ class UpdateStatus {
   };
 
   getRenderer ($module, response) {
-    console.log('yes')
     $module.innerHTML = response.html
   }
 
