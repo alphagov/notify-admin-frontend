@@ -8,6 +8,7 @@ import FileUpload from './file-upload.mjs';
 import Autofocus from './autofocus.mjs';
 import Homepage from './homepage.mjs';
 import PreviewPane from './preview-pane.mjs';
+import UpdateStatus from './update-status.mjs';
 
 // Modules from 3rd party vendors
 import morphdom from 'morphdom';
@@ -49,6 +50,11 @@ if ($homePage) {
 const $previewPane = document.querySelector('.govuk-radios__item input[name="branding_style"]:checked');
 if ($previewPane) {
   new PreviewPane($previewPane);
+}
+
+const $updateStatus = document.querySelector('[data-notify-module="update-status"]');
+if ($updateStatus) {
+  new UpdateStatus($updateStatus);
 }
 
 const focusBanner = new FocusBanner();
