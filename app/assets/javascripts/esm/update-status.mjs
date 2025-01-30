@@ -16,42 +16,9 @@ class UpdateStatus {
       return this;
     }
 
-    const getRenderer = $component => response => $component.html(
-      response.html
-    );
+    
 
-    const throttle = (func, limit) => {
-
-      let throttleOn = false;
-      let callsHaveBeenThrottled = false;
-      let timeout;
-
-      return function() {
-
-        const args = arguments;
-        const context = this;
-
-        if (throttleOn) {
-          callsHaveBeenThrottled = true;
-        } else {
-          func.apply(context, args);
-          throttleOn = true;
-        }
-
-        clearTimeout(timeout);
-
-        timeout = setTimeout(() => {
-          throttleOn = false;
-          if (callsHaveBeenThrottled) func.apply(context, args);
-          callsHaveBeenThrottled = false;
-        }, limit);
-
-      };
-
-    };
-
-    let id = 'update-status';
-
+    const id = 'update-status';
     this.$module = $module;
     this.$textbox = document.querySelector(`#${this.$module.dataset.target}`);
 
@@ -65,52 +32,64 @@ class UpdateStatus {
       ) + id
     );
     this.$textbox.addEventListener("input", () => {
-      // console.log(el)
-      // this.$textbox.dispatchEvent(new Event("input"))
-      throttle(this.update(), 150)
-      // el.dispatchEvent(new Event('input', { bubbles: true }));
+      this.throttle(this.update(), 150)
     });
         
   }
 
   async update () {
-    console.log('tostring', new URLSearchParams(new FormData(this.getParent(this.$textbox, 'form'))).toString())
-    console.log('stringify', JSON.stringify(new URLSearchParams(new FormData(this.getParent(this.$textbox, 'form'))).toString()))
-    console.log('random', new URLSearchParams(new FormData(this.getParent(this.$textbox, 'form'))).toString())
     await fetch(this.$module.dataset.updatesUrl, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/x-www-form-urlencoded",
       },
       body: new URLSearchParams(new FormData(this.getParent(this.$textbox, 'form'))).toString()
     })
     .then(res => res.json())
     .then((data) => {
-      console.log('response', data)
       this.getRenderer(this.$module, data)
     })
     .catch(() => {
       () => {}
     });
-
-    // $.ajax(
-    //   this.$module.dataset.updatesUrl,
-    //   {
-    //     'method': 'post',
-    //     'data': new URLSearchParams(new FormData(this.$textbox.parentNode('form'))).toString();
-    //   }
-    // ).done(
-    //   this.getRenderer(this.$module)
-    // ).fail(
-    //   () => {}
-    // );
-
   };
 
   getRenderer ($module, response) {
     $module.innerHTML = response.html
   }
 
+  throttle (func, limit) {
+
+    let throttleOn = false;
+    let callsHaveBeenThrottled = false;
+    let timeout;
+
+    return function() {
+
+      const args = arguments;
+      const context = this;
+
+      if (throttleOn) {
+        callsHaveBeenThrottled = true;
+      } else {
+        func.apply(context, args);
+        throttleOn = true;
+      }
+
+      clearTimeout(timeout);
+
+      timeout = setTimeout(() => {
+        throttleOn = false;
+        if (callsHaveBeenThrottled) func.apply(context, args);
+        callsHaveBeenThrottled = false;
+      }, limit);
+
+    };
+
+  };
+
+  // instead of doing just document.querySelector
+  // we use this to look up from the $module
   getParent(el, selector) {
     const parents= [];
     while ((el = el.parentNode) && el !== document) {
