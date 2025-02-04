@@ -1,45 +1,47 @@
-const each = require('jest-each').default;
+import UpdateStatus from '../../app/assets/javascripts/esm/update-status.mjs';
+import * as helpers from './support/helpers.js';
+import { jest } from '@jest/globals';
 
-const helpers = require('./support/helpers.js');
+// const each = require('jest-each').default;
+
 
 const serviceNumber = '6658542f-0cad-491f-bec8-ab8457700ead';
 const updatesURL = `/services/${serviceNumber}/templates/count-sms-length`;
 
 let responseObj = {};
-let jqueryAJAXReturnObj;
+let mockResponse;
 
 beforeAll(() => {
 
   // ensure all timers go through Jest
   jest.useFakeTimers();
 
-  // mock the bits of jQuery used
-  jest.spyOn(window.$, 'ajax');
+  // // mock the bits of jQuery used
+  // jest.spyOn(window.$, 'ajax');
 
-  // set up the object returned from $.ajax so it responds with whatever responseObj is set to
-  jqueryAJAXReturnObj = {
-    done: callback => {
-      // For these tests the server responds immediately
-      callback(responseObj);
-      return jqueryAJAXReturnObj;
-    },
-    fail: () => {}
-  };
+  jest.spyOn(global, 'fetch').mockResolvedValue({
+    json: jest.fn().mockResolvedValue(mockResponse),
+  });
 
-  $.ajax.mockImplementation(() => jqueryAJAXReturnObj);
+  // // set up the object returned from $.ajax so it responds with whatever responseObj is set to
+  // jqueryAJAXReturnObj = {
+  //   done: callback => {
+  //     // For these tests the server responds immediately
+  //     callback(responseObj);
+  //     return jqueryAJAXReturnObj;
+  //   },
+  //   fail: () => {}
+  // };
 
-  require('../../app/assets/javascripts/updateStatus.js');
+  // $.ajax.mockImplementation(() => jqueryAJAXReturnObj);
 
-});
-
-afterAll(() => {
-  require('./support/teardown.js');
 });
 
 describe('Update content', () => {
 
   beforeEach(() => {
 
+    document.body.classList.add('govuk-frontend-supported')
     document.body.innerHTML = `
       <form>
         <input type="hidden" name="csrf_token" value="abc123" />
@@ -59,16 +61,16 @@ describe('Update content', () => {
     document.body.innerHTML = '';
 
     // tidy up record of mocked AJAX calls
-    $.ajax.mockClear();
+    // $.ajax.mockClear();
 
-    // ensure any timers set by continually starting the module are cleared
-    jest.clearAllTimers();
+    // // ensure any timers set by continually starting the module are cleared
+    // jest.clearAllTimers();
 
   });
 
   test("It should add attributes to the elements", () => {
 
-    window.GOVUK.notifyModules.start();
+   new UpdateStatus(document.querySelector('[data-notify-module="update-status"]'));
 
     expect(
       document.querySelectorAll('[data-notify-module=update-status]')[0].id
@@ -88,7 +90,7 @@ describe('Update content', () => {
 
     document.getElementById('template_content').removeAttribute('aria-describedby');
 
-    window.GOVUK.notifyModules.start();
+   new UpdateStatus(document.querySelector('[data-notify-module="update-status"]'));
 
     expect(
       document.getElementById('template_content').getAttribute('aria-describedby')
@@ -98,15 +100,17 @@ describe('Update content', () => {
 
   });
 
-  test("It should make requests to the URL specified in the data-updates-url attribute", () => {
+  test.only("It should make requests to the URL specified in the data-updates-url attribute", () => {
 
-    window.GOVUK.notifyModules.start();
+   new UpdateStatus(document.querySelector('[data-notify-module="update-status"]'));
+
+   expect(fetchMock).toHaveBeenCalledWith(updatesURL);
 
     expect($.ajax.mock.calls[0][0]).toEqual(updatesURL);
     expect($.ajax.mock.calls[0]).toEqual([
       updatesURL,
       {
-        "data": "csrf_token=abc123&template_content=Content%20of%20message",
+        "body": "csrf_token=abc123&template_content=Content%20of%20message",
         "method": "post"
       }
     ]);
@@ -123,7 +127,7 @@ describe('Update content', () => {
       "Initial content"
     );
 
-    window.GOVUK.notifyModules.start();
+   new UpdateStatus(document.querySelector('[data-notify-module="update-status"]'));
 
     expect(
       document.querySelectorAll('[data-notify-module=update-status]')[0].textContent.trim()
@@ -138,7 +142,7 @@ describe('Update content', () => {
     let textarea = document.getElementById('template_content');
 
     // Initial update triggered
-    window.GOVUK.notifyModules.start();
+   new UpdateStatus(document.querySelector('[data-notify-module="update-status"]'));
     expect($.ajax.mock.calls.length).toEqual(1);
 
     // 150ms of inactivity
@@ -154,7 +158,7 @@ describe('Update content', () => {
     let textarea = document.getElementById('template_content');
 
     // Initial update triggered
-    window.GOVUK.notifyModules.start();
+   new UpdateStatus(document.querySelector('[data-notify-module="update-status"]'));
     expect($.ajax.mock.calls.length).toEqual(1);
 
     helpers.triggerEvent(textarea, 'input');
