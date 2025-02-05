@@ -582,11 +582,12 @@ def send_from_contact_list(service_id, template_id, contact_list_id):
             template_id=template_id,
             upload_id=contact_list.copy_to_uploads(),
             contact_list_id=contact_list.id,
+            emergency_contact=True,
         )
     )
 
 
-def _check_messages(service_id, template_id, upload_id, preview_row):
+def _check_messages(service_id, template_id, upload_id, preview_row, emergency_contact=False):
     try:
         # The happy path is that the job doesn’t already exist, so the
         # API will return a 404 and the client will raise HTTPError.
@@ -640,7 +641,7 @@ def _check_messages(service_id, template_id, upload_id, preview_row):
         allow_international_sms=current_service.has_permission("international_sms"),
         allow_sms_to_uk_landline=current_service.has_permission("sms_to_uk_landlines"),
         allow_international_letters=current_service.has_permission("international_letters"),
-        should_validate_phone_number=False,
+        should_validate_phone_number=not emergency_contact,
     )
     if request.args.get("from_test"):
         # only happens if generating a letter preview test
@@ -692,8 +693,8 @@ def _check_messages(service_id, template_id, upload_id, preview_row):
     "/services/<uuid:service_id>/<uuid:template_id>/check/<uuid:upload_id>/row-<int:row_index>", methods=["GET"]
 )
 @user_has_permissions("send_messages", restrict_admin_usage=True)
-def check_messages(service_id, template_id, upload_id, row_index=2):
-    data = _check_messages(service_id, template_id, upload_id, row_index)
+def check_messages(service_id, template_id, upload_id, row_index=2, emergency_contact=False):
+    data = _check_messages(service_id, template_id, upload_id, row_index, emergency_contact)
     data["allowed_file_extensions"] = Spreadsheet.ALLOWED_FILE_EXTENSIONS
     if (
         data["recipients"].too_many_rows

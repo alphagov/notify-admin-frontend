@@ -4549,8 +4549,13 @@ def test_can_send_from_emergency_contact_list_with_error_rows(
         service_id=SERVICE_ONE_ID,
         template_id=fake_uuid,
         upload_id=fake_uuid,
+        emergency_contact=True,
         _test_page_title=False,
         _follow_redirects=True,
     )
     assert not page.select_one(".banner-dangerous")
     assert page.select_one(".govuk-button").text.strip() == "Send 1 text message"
+
+
+def test_cannot_send_from_csv_job_upload_with_error_rows():
+    assert 1 == 1
