@@ -693,7 +693,8 @@ def _check_messages(service_id, template_id, upload_id, preview_row, emergency_c
     "/services/<uuid:service_id>/<uuid:template_id>/check/<uuid:upload_id>/row-<int:row_index>", methods=["GET"]
 )
 @user_has_permissions("send_messages", restrict_admin_usage=True)
-def check_messages(service_id, template_id, upload_id, row_index=2, emergency_contact=False):
+def check_messages(service_id, template_id, upload_id, row_index=2):
+    emergency_contact = bool(request.args.get("emergency_contact"))
     data = _check_messages(service_id, template_id, upload_id, row_index, emergency_contact)
     data["allowed_file_extensions"] = Spreadsheet.ALLOWED_FILE_EXTENSIONS
     if (
