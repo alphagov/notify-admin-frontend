@@ -4442,6 +4442,7 @@ def test_send_from_contact_list(
             template_id=fake_uuid,
             upload_id=new_uuid,
             contact_list_id=fake_uuid,
+            emergency_contact=True,
         ),
     )
     mock_download.assert_called_once_with(SERVICE_ONE_ID, fake_uuid, bucket="test-contact-list")
